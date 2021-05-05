@@ -296,7 +296,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 
 		public function get_fb_description() {
 			if ( $this->fb_description ) {
-				return $this->fb_description;
+				return apply_filters( 'the_content', $this->fb_description );
 			}
 
 			$description = get_post_meta(
@@ -306,7 +306,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 			);
 
 			if ( $description ) {
-				return $description;
+				return apply_filters( 'the_content', $description );
 			}
 
 			if ( WC_Facebookcommerce_Utils::is_variation_type( $this->woo_product->get_type() ) ) {
@@ -314,10 +314,10 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 				$description = WC_Facebookcommerce_Utils::clean_string( $this->woo_product->get_description() );
 
 				if ( $description ) {
-					return $description;
+					return apply_filters( 'the_content', $description );
 				}
 				if ( $this->main_description ) {
-					return $this->main_description;
+					return apply_filters( 'the_content', $this->main_description );
 				}
 			}
 
@@ -344,7 +344,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 				$description = $post_title;
 			}
 
-			return $description;
+			return apply_filters( 'the_content', $description );
 		}
 
 		public function add_sale_price( $product_data, $for_items_batch = false ) {
@@ -430,7 +430,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 			// Convert all slug_names in $option_values into the visible names that
 			// advertisers have set to be the display names for a given attribute value
 			$terms = get_the_terms( $this->id, $key );
-			return ! is_array( $terms ) ? array() : array_map(
+			return ! is_array( $terms ) ? [] : array_map(
 				function ( $slug_name ) use ( $terms ) {
 					foreach ( $terms as $term ) {
 						if ( $term->slug === $slug_name ) {
@@ -565,7 +565,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 					'title'                 => WC_Facebookcommerce_Utils::clean_string(
 						$this->get_title()
 					),
-					'description'           => $this->get_fb_description(),
+					'description'           => strip_tags($this->get_fb_description()),
 					'image_link'            => $image_urls[0],
 					'additional_image_link' => $this->get_additional_image_urls( $image_urls ),
 					'link'                  => $product_url,
@@ -581,7 +581,7 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 					'name'                  => WC_Facebookcommerce_Utils::clean_string(
 						$this->get_title()
 					),
-					'description'           => $this->get_fb_description(),
+					'description'           => strip_tags($this->get_fb_description()),
 					'image_url'             => $image_urls[0],
 					'additional_image_urls' => $this->get_additional_image_urls( $image_urls ),
 					'url'                   => $product_url,
@@ -695,21 +695,20 @@ if ( ! class_exists( 'WC_Facebook_Product' ) ) :
 		 * Filters list of attributes to only those available for a given product
 		 *
 		 * @param \WC_Product $product WooCommerce Product
-		 * @param array       $all_attributes List of Enhanced Catalog attributes to match
+		 * @param array $all_attributes List of Enhanced Catalog attributes to match
 		 * @return array
 		 */
 		public function get_matched_attributes_for_product( $product, $all_attributes ) {
 			$matched_attributes = array();
-			$sanitized_keys     = array_map(
+			$sanitized_keys = array_map(
 				function( $key ) {
 						return \WC_Facebookcommerce_Utils::sanitize_variant_name( $key, false );
 				},
 				array_keys( $product->get_attributes() )
 			);
 
-			$matched_attributes = array_filter(
-				$all_attributes,
-				function( $attribute ) use ( $sanitized_keys ) {
+			$matched_attributes = array_filter( $all_attributes,
+				function( $attribute ) use ($sanitized_keys) {
 					return in_array( $attribute['key'], $sanitized_keys );
 				}
 			);
