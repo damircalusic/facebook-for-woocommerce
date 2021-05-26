@@ -13,6 +13,7 @@ use SkyVerge\WooCommerce\Facebook\Lifecycle;
 use SkyVerge\WooCommerce\Facebook\Utilities\Background_Handle_Virtual_Products_Variations;
 use SkyVerge\WooCommerce\Facebook\Utilities\Background_Remove_Duplicate_Visibility_Meta;
 use SkyVerge\WooCommerce\PluginFramework\v5_10_0 as Framework;
+use SkyVerge\WooCommerce\Facebook\Utilities\Heartbeat;
 
 if ( ! class_exists( 'WC_Facebookcommerce' ) ) :
 
@@ -22,7 +23,7 @@ if ( ! class_exists( 'WC_Facebookcommerce' ) ) :
 
 
 		/** @var string the plugin version */
-		const VERSION = '2.4.1';
+		const VERSION = WC_Facebook_Loader::PLUGIN_VERSION;
 
 		/** @var string for backwards compatibility TODO: remove this in v2.0.0 {CW 2020-02-06} */
 		const PLUGIN_VERSION = self::VERSION;
@@ -94,6 +95,9 @@ if ( ! class_exists( 'WC_Facebookcommerce' ) ) :
 		/** @var \SkyVerge\WooCommerce\Facebook\Jobs\JobRegistry */
 		public $job_registry;
 
+		/** @var Heartbeat */
+		public $heartbeat;
+
 		/**
 		 * Constructs the plugin.
 		 *
@@ -141,6 +145,9 @@ if ( ! class_exists( 'WC_Facebookcommerce' ) ) :
 				require_once __DIR__ . '/includes/fbproductfeed.php';
 				require_once __DIR__ . '/facebook-commerce-messenger-chat.php';
 				require_once __DIR__ . '/includes/Exceptions/ConnectWCAPIException.php';
+
+				$this->heartbeat = new Heartbeat( WC()->queue() );
+				$this->heartbeat->init();
 
 				$this->product_feed              = new \SkyVerge\WooCommerce\Facebook\Products\Feed();
 				$this->products_stock_handler    = new \SkyVerge\WooCommerce\Facebook\Products\Stock();
@@ -1000,6 +1007,17 @@ if ( ! class_exists( 'WC_Facebookcommerce' ) ) :
 		public function get_plugin_name() {
 
 			return __( 'Facebook for WooCommerce', 'facebook-for-woocommerce' );
+		}
+
+		/**
+		 * Gets the url for the assets build directory.
+		 *
+		 * @since 2.3.4
+		 *
+		 * @return string
+		 */
+		public function get_asset_build_dir_url() {
+			return $this->get_plugin_url() . '/assets/build';
 		}
 
 
